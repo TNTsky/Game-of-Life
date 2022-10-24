@@ -11,7 +11,8 @@ with open('shape.json') as f:
 
 pygame.init()
 
-backgroud_color = (0, 0, 0)
+background_img = pygame.image.load('images/background.png')
+background_color = (0, 0, 0)
 CellColor = (252, 201, 185)
 CellSize = [10, 10]
 CellNum = [80, 80]
@@ -25,6 +26,7 @@ last_xy=[-1,-1]
 pre = []
 dir = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
 alive = []
+dead = []
 status = 'add'
 status_list = ['add', 'remove', 'glider', 'gun','generate', 'clean']
 
@@ -46,24 +48,23 @@ def remove(xy):
 
 
 def check():
-    for x in range(CellNum[0]):
-        for y in range(CellNum[1]):
-            if [x, y] in alive:
-                Cell[x, y] = 1
-            else:
-                Cell[x, y] = 0
+
+    for i in alive:
+        Cell[i[0], i[1]] = 1
+    for j in dead:
+        Cell[j[0],j[1]]=0
+    dead.clear()
 
 
 def update():
-    for x in range(CellNum[0]):
-        for y in range(CellNum[1]):
-            if [x, y] in pre:
-                pygame.draw.rect(screen_image, (160, 160, 160), [x*10, y*10, 10, 10], 5)
-            elif Cell[x, y]:
-                pygame.draw.rect(screen_image, (255, 255, 255), [x*10, y*10, 10, 10], 5)
-            else:
-                pygame.draw.rect(screen_image, (0, 0, 0),[x*10, y*10, 10, 10], 5)
-                pygame.draw.rect(screen_image, (100, 100, 100), [x*10, y*10, 10, 10], 1)
+    screen_image.blit(background_img, (0, 0))
+    for i in alive:
+        x,y=i[0],i[1]
+        pygame.draw.rect(screen_image, (255, 255, 255), [x*10, y*10, 10, 10], 5)
+    for i in pre:
+        x,y=i[0],i[1]
+        pygame.draw.rect(screen_image, (160, 160, 160), [x*10, y*10, 10, 10], 5)
+
     alive_image = pygame.font.Font("font/msjh.ttc", 24).render("███████████████████", True, (0, 0, 0), (0, 0, 0))
     screen_image.blit(alive_image, (820, 50))
     alive_image = pygame.font.Font("font/msjh.ttc", 24).render(f'存活數量:{len(alive)}', True, (200, 200, 200), (0, 0, 0))
@@ -73,7 +74,8 @@ def update():
 screen_image = pygame.display.set_mode((1000, 800))
 screen_rect = screen_image.get_rect()
 pygame.display.set_caption('Conway\'s Game of Life')
-screen_image.fill(backgroud_color)
+# screen_image.fill(background_img)
+screen_image.fill(background_color)
 
 play_img = pygame.image.load('images/play.png')
 play_button = button.Button(945, 740, play_img, 55, screen_image)
@@ -90,20 +92,11 @@ button_reset()
 add_img = pygame.image.load('images/add_down.png')
 button.Button(900, 150, add_img, 160, screen_image)
 
-for x in range(CellNum[0]):
-    for y in range(CellNum[1]):
-        pygame.draw.rect(screen_image, (100, 100, 100),
-                         [x*10, y*10, 10, 10], 1)
-
-
 alive_image = pygame.font.Font("font/msjh.ttc", 24).render("存活數量:0", True, (200, 200, 200), (0, 0, 0))
 screen_image.blit(alive_image, (820, 50))
 pygame.display.flip()
 
-
-
 while True:
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -244,7 +237,7 @@ while True:
         alive.clear()
         for x in range(CellNum[0]):
             a = [i for i in range(CellNum[0])]
-            b = random.sample(a, random.randint(10, 30))
+            b = random.sample(a, random.randint(15, 35))
             for y in b:
                 alive.append([x, y])
                 Cell[x,y]=1
@@ -257,7 +250,6 @@ while True:
         play_img = pygame.image.load('images/play.png')
         button.Button(945, 740, play_img, 55, screen_image)
 
-
     if play:
         for i in range(CellNum[0]):
             for j in range(CellNum[1]):
@@ -268,6 +260,7 @@ while True:
                 if Cell[i, j]:
                     if neighbor < 2 or neighbor > 3:
                         alive.remove([i, j])
+                        dead.append([i, j])
                 else:
                     if neighbor == 3:
                         alive.append([i, j])
